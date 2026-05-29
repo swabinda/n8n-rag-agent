@@ -1,0 +1,460 @@
+{
+  "name": "Nexus Weave Rag Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        272
+      ],
+      "id": "300c4eaf-f342-4d85-bb79-46df60a3eafe",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "308CjxiD6Jb4qK0l",
+          "name": "OpenAI account 137"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to search and retrieve relevant information from the company's internal knowledge base to answer user queries accurately",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "nexus-weave",
+          "mode": "list",
+          "cachedResultName": "nexus-weave"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        272
+      ],
+      "id": "6df13d8d-cb66-43b6-a858-2b6150ba8733",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2cjqZ0t43FXXJKH6",
+          "name": "Pinecone account 53"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        336,
+        448
+      ],
+      "id": "7ed1df3b-9967-4e8a-bc8d-93a5bc292926",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "308CjxiD6Jb4qK0l",
+          "name": "OpenAI account 137"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2b40ffe3-078d-4d4c-a870-94fa7d7b58b7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "621f761d-0d4b-4177-b185-6910a77291ea",
+      "name": "User Form Submit",
+      "webhookId": "2b40ffe3-078d-4d4c-a870-94fa7d7b58b7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are an expert email copywriter for Xevryon Labs, an AI automation company.\n\nYour task is to generate a concise and relevant email subject line based on the AI agent's reply.\n\nINPUT:\nYou will receive the full email body (AI-generated response).\n\nINSTRUCTIONS:\n\n1. Analyze the email body and identify:\n   - The main intent (support, solution, follow-up, info, automation help)\n   - The key value or outcome for the user\n\n2. Generate ONE subject line that:\n   - Clearly reflects the message\n   - Is relevant and specific\n   - Sounds professional and human-written\n   - Avoids clickbait or spammy words\n\n3. Keep the subject line:\n   - Between 5 to 10 words\n   - Under 60 characters\n   - Simple and easy to understand\n\n4. Tone:\n   - Professional\n   - Helpful\n   - Slightly conversational (not robotic)\n\n5. DO NOT:\n   - Use emojis\n   - Use ALL CAPS\n   - Use spam trigger words (e.g., \"FREE\", \"URGENT\", \"!!!\")\n   - Be vague (e.g., \"Update\", \"Important message\")\n\n6. If the email is about automation or AI solutions:\n   - Highlight benefit (e.g., time-saving, efficiency, automation)\n\nOUTPUT FORMAT:\n- Return ONLY the subject line\n- No quotes\n- No extra text\n\nGOAL:\nCreate a subject line that improves open rates while accurately representing the email content."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        688,
+        0
+      ],
+      "id": "468e203e-52cd-4401-9b4e-d89ef76b766b",
+      "name": "Email Subject Generator"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('User Reply Generator Agent').item.json.output }}",
+        "options": {
+          "systemMessage": "Role: You are an expert HTML Email Developer.\nTask: Convert the provided plain text email body into a premium, dark-themed responsive HTML email.\n\n### DESIGN SPECIFICATIONS:\n1. Background Color: Set the main wrapper background to #030C1B.\n2. Text Color: Use #FFFFFF (White) or #E0E0E0 (Light Grey) for all body text to ensure high readability.\n3. Styles: Use ONLY inline CSS. \n4. Layout: \n   - Max-width: 600px, centered.\n   - Padding: 40px for desktop, 20px for mobile.\n   - Font: 'Helvetica Neue', Helvetica, Arial, sans-serif.\n5. Elements:\n   - Wrap the text in <p> tags with line-height: 1.6.\n   - Headers should be bold and clearly separated.\n   - Use a subtle border or secondary color for call-to-action buttons if present.\n\n### CONSTRAINTS:\n- Output ONLY the final HTML code.\n- Do not include markdown code blocks (no ```html).\n- Do not include any preamble or conversational text.\n\n### INPUT:\n[The text body to be converted]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "8a494845-897d-4afd-aa0b-b8a70b06bb2a",
+      "name": "Email Body Text to HTML Generator"
+    },
+    {
+      "parameters": {
+        "content": "User submit name, email, phone and query in this node.",
+        "color": "#454040"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "29bee99a-ebd5-4edf-9644-adf0ee82d3cd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "This agent generate reply based on user query in this node.",
+        "color": "#454040"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "df705f2b-1930-4158-8347-d0aac05d1055",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Based on User reply generator agent output this agent generate email subject.",
+        "color": "#454040"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "c6c192bc-0db7-4a84-9c0b-f271ce6e288f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.query }}",
+        "options": {
+          "systemMessage": "You are an AI assistant for Xevryon Labs, an AI automation and intelligent systems company.\n\nYou answer user queries using retrieved context from a similarity search system.\n\nCORE PRIORITY ORDER:\n\n1. If relevant context is available:\n   - Use it to answer clearly and accurately\n\n2. If NO relevant context is available:\n   - Use general knowledge about Xevryon Labs:\n     - AI automation\n     - AI agents\n     - Workflow automation\n     - Business efficiency\n   - Provide a helpful, high-level answer\n\n3. ONLY use the fallback message if:\n   - The user asks for specific details (pricing, exact data, internal info)\n   - AND that information is not available\n\nFallback message:\n\"I don’t have enough specific information on that. Please contact Xevryon Labs for more details.\"\n\nCONTEXT HANDLING:\n\n- Combine multiple relevant context parts if needed\n- Ignore irrelevant context\n- Do NOT guess missing details\n\nAMBIGUITY:\n\n- If unclear, ask a short clarification question\n\nRESPONSE STYLE:\n\n- Clear and concise (under 120 words)\n- Simple, non-technical language\n- Business-focused (time saving, efficiency, automation)\n\nCTA:\n\n- When relevant, add:\n\"Let me know if you'd like help implementing this for your business.\"\n\nRESTRICTIONS:\n\n- Do NOT mention internal systems or technical backend\n- Do NOT hallucinate specific facts\n\nOUTPUT:\n\n- Plain text only\n- No markdown or formatting"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        0
+      ],
+      "id": "f32c2bbc-8de6-4e13-8d2e-5be2ec6ffc34",
+      "name": "User Reply Generator Agent"
+    },
+    {
+      "parameters": {
+        "content": "Based on User reply generator agent output this agent generate email body text into html body.",
+        "color": "#454040"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1104,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "a6861fb2-3b6b-4a10-a23a-93f1b8bca251",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1520,
+        0
+      ],
+      "id": "929872b6-a87c-4f29-9ea2-851dcbc7b36f",
+      "name": "Respond User Query"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('User Form Submit').item.json.body.email }}",
+        "subject": "={{ $('Email Subject Generator').item.json.output }}",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        0
+      ],
+      "id": "d1493f50-9b23-4e53-883b-77925de49190",
+      "name": "Send Email Reply to User",
+      "webhookId": "bedc520f-6433-44df-b7b3-0596e7550f85",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "O00W2Qf1RRj3S1Wy",
+          "name": "Gmail account 618"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Wfup20NurlFj_-z4tEW4UyBgmSlzTG0tGCnb9tD9xPg",
+          "mode": "list",
+          "cachedResultName": "Customers Info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wfup20NurlFj_-z4tEW4UyBgmSlzTG0tGCnb9tD9xPg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Wfup20NurlFj_-z4tEW4UyBgmSlzTG0tGCnb9tD9xPg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('User Form Submit').item.json.body.name }}",
+            "Email": "={{ $('User Form Submit').item.json.body.email }}",
+            "Phone": "={{ $('User Form Submit').item.json.body.phone }}",
+            "Query": "={{ $('User Form Submit').item.json.body.query }}",
+            "     Qury Reply": "={{ $('User Reply Generator Agent').item.json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Query",
+              "displayName": "Query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "     Qury Reply",
+              "displayName": "     Qury Reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1968,
+        0
+      ],
+      "id": "41951c2f-dc55-4e9e-9a0a-6f23bf9d5d86",
+      "name": "Stored Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "IwoZNtmS2e486spJ",
+          "name": "Google Sheets account 658"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "User Reply Generator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Email Subject Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Email Body Text to HTML Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "User Reply Generator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Form Submit": {
+      "main": [
+        [
+          {
+            "node": "User Reply Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Subject Generator": {
+      "main": [
+        [
+          {
+            "node": "Email Body Text to HTML Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Body Text to HTML Generator": {
+      "main": [
+        [
+          {
+            "node": "Respond User Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Reply Generator Agent": {
+      "main": [
+        [
+          {
+            "node": "Email Subject Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond User Query": {
+      "main": [
+        [
+          {
+            "node": "Send Email Reply to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Reply to User": {
+      "main": [
+        [
+          {
+            "node": "Stored Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e793e4c1-d1a9-4b4f-ba23-20ed58fce343",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f00bba974abf03cb5183d4d65f8a9645a781b04770df6a7d08284fca87d50b3"
+  },
+  "id": "sbMre9zn50Fyi6EZ",
+  "tags": []
+}
